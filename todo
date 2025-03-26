@@ -1,0 +1,10 @@
+[] make the encoding part work
+[] make the image part work
+[] add checks and error for image upload
+[] add checks to make sure only either image or text is entered and not both
+[] add download button below the canvas
+[] create a canvas context and use it globally on the right pane
+[] make the decodeing work 
+[] add links for github and stuff
+[] add footer 
+[] deploy

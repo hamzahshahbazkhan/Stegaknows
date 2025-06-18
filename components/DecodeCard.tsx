@@ -1,6 +1,6 @@
 "use client";
-
-import { useRef, useState, useEffect } from "react";
+import { useState, useContext, useRef } from "react";
+import { CanvasContext } from "@/contexts/canvasContext";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,114 +15,202 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function DecodeCard() {
-  const canvasRef = useRef(null);
-  const [imageUrl, setImageUrl] = useState(null);
-  const [decodedText, setDecodedText] = useState("");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [decodedText, setDecodedText] = useState<string>("");
+  const [decodedByteStream, setDecodedByteStream] = useState<number[]>([]);
+  const [decodedImage, setDecodedImage] = useState<string | null>(null);
+  const { setDownloadButton } = useContext(CanvasContext);
+  const decodedImageCanvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Load and display the image in the canvas
-  useEffect(() => {
-    if (imageUrl && canvasRef.current) {
-      const image = new Image();
-      image.onload = () => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-
-        canvas.width = image.width;
-        canvas.height = image.height;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(image, 0, 0);
-      };
-      image.src = imageUrl;
-    }
-  }, [imageUrl]);
-
-  // Handle file upload
-  const handleImageUpload = (event) => {
-    if (event.target.files && event.target.files[0]) {
-      const imageUrl = URL.createObjectURL(event.target.files[0]);
-      setImageUrl(imageUrl);
-    }
+    const url = URL.createObjectURL(file);
+    setImageUrl(url);
+    setDownloadButton(false);
+    setDecodedText("");
+    setDecodedImage(null);
   };
 
-  // Extract hidden text from image
-  const getImageData = async () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const decodeText = () => {
+    if (!imageUrl) {
+      alert("Please upload an image first");
+      return;
+    }
 
+    const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
+    const img = new Image();
+    img.src = imageUrl;
 
-    let decodedBuffer = "";
-    let last8Bits = "11111111";
-    let j = 0;
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
 
-    // Decode hidden message bit-by-bit
-    while (last8Bits !== "00000000" && j < data.length) {
-      let bit = (data[j] & 1).toString(); // Extract LSB from pixel
-      decodedBuffer += bit;
-      last8Bits = last8Bits.slice(1) + bit; // Shift and add new bit
-      j++;
-    }
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
 
-    // Remove trailing "00000000"
-    decodedBuffer = decodedBuffer.replace(/00000000$/, "");
+      let dataIndex = 0;
 
-    // Convert binary to text
-    let chars = decodedBuffer.match(/.{8}/g) || [];
-    const message = chars
-      .map((byte) => String.fromCharCode(parseInt(byte, 2)))
-      .join("");
+      const extractBits = (numBits: number): string => {
+        let bits = "";
+        while (bits.length < numBits && dataIndex < data.length) {
+          const pixelValue = data[dataIndex];
+          const bit = pixelValue & 1;
+          bits += bit.toString();
+          dataIndex++;
+        }
+        return bits;
+      };
 
-    setDecodedText(message);
-    console.log("Decoded Message:", message);
+      const stegBits = extractBits(24);
+      const expectedHeader = [..."STG"]
+        .map((c) => c.charCodeAt(0).toString(2).padStart(8, "0"))
+        .join("");
+
+      if (stegBits !== expectedHeader) {
+        setDecodedText("No hidden data found");
+        return;
+      }
+
+      const typeBits = extractBits(8);
+      const dataType = parseInt(typeBits, 2);
+      if (dataType === 3) {
+        const widthBits = extractBits(16);
+        const heightBits = extractBits(16);
+
+        const width = parseInt(widthBits, 2);
+        const height = parseInt(heightBits, 2);
+
+        if (width <= 0 || height <= 0 || width > 1000 || height > 1000) {
+          setDecodedText("Invalid image dimensions detected");
+          return;
+        }
+
+        const totalPixels = width * height;
+        const totalBytes = totalPixels * 4; // RGBA
+        const imageBytes = [];
+        let binaryString = "";
+
+        while (imageBytes.length < totalBytes && dataIndex < data.length) {
+          binaryString += (data[dataIndex] & 1).toString();
+          dataIndex++;
+
+          if (binaryString.length >= 8) {
+            const byte = binaryString.substring(0, 8);
+            binaryString = binaryString.substring(8);
+            const number = parseInt(byte, 2);
+            imageBytes.push(number);
+          }
+        }
+
+        if (decodedImageCanvasRef.current && imageBytes.length >= totalBytes) {
+          const decodedCanvas = decodedImageCanvasRef.current;
+          decodedCanvas.width = width;
+          decodedCanvas.height = height;
+          const decodedCtx = decodedCanvas.getContext("2d");
+
+          if (decodedCtx) {
+            const newImageData = decodedCtx.createImageData(width, height);
+
+            for (let i = 0; i < totalBytes && i < imageBytes.length; i++) {
+              newImageData.data[i] = imageBytes[i];
+            }
+
+            decodedCtx.putImageData(newImageData, 0, 0);
+            setDecodedImage(decodedCanvas.toDataURL());
+            setDecodedText("Hidden image decoded successfully!");
+          }
+        } else {
+          setDecodedText(`Failed to decode`);
+        }
+      } else if (dataType === 1) {
+        let message = "";
+        let binaryString = "";
+        const byteStream = [];
+
+        while (message.length < 10000 && dataIndex < data.length) {
+          binaryString += (data[dataIndex] & 1).toString();
+          dataIndex++;
+
+          if (binaryString.length >= 8) {
+            const byte = binaryString.substring(0, 8);
+            binaryString = binaryString.substring(8);
+            const charCode = parseInt(byte, 2);
+            byteStream.push(charCode);
+
+            if (charCode === 0) break;
+            message += String.fromCharCode(charCode);
+          }
+        }
+
+        setDecodedByteStream(byteStream);
+        setDecodedText(message || "No text message found");
+        setDecodedImage(null);
+      } else {
+        setDecodedText("Unknown data type or corrupted data");
+        setDecodedImage(null);
+      }
+    };
   };
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle>Decode</CardTitle>
-        <CardDescription>
-          Upload an image to extract hidden text.
+        <CardDescription className="text-md">
+          Extract hidden text or image from an image
         </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-2">
         <div className="space-y-1">
-          <Label htmlFor="imageUpload">Image</Label>
+          <Label htmlFor="encodedImage">Encoded Image</Label>
           <Input
             type="file"
             accept="image/*"
-            id="imageUpload"
-            placeholder="Upload the Image"
+            id="encodedImage"
             onChange={handleImageUpload}
           />
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="decodedText">Decoded Text</Label>
-          <Textarea id="decodedText" value={decodedText} readOnly />
+          <Label htmlFor="decodedText">Decoded Message</Label>
+          <Textarea
+            id="decodedText"
+            value={decodedText}
+            readOnly
+            placeholder="Hidden message will appear here"
+            rows={5}
+          />
         </div>
+
+        {decodedImage && (
+          <div className="space-y-1">
+            <Label>Decoded Secret Image</Label>
+            <div className="border rounded p-2">
+              <img
+                src={decodedImage}
+                alt="Decoded secret image"
+                className="max-w-full h-auto"
+                style={{ imageRendering: "pixelated" }}
+              />
+            </div>
+          </div>
+        )}
+
+        <canvas ref={decodedImageCanvasRef} style={{ display: "none" }} />
       </CardContent>
 
       <CardFooter>
-        <Button
-          variant="noShadow"
-          className="w-full bg-bw text-text"
-          onClick={getImageData}
-        >
-          Decode
+        <Button className="w-full" onClick={decodeText} disabled={!imageUrl}>
+          Decode Message
         </Button>
       </CardFooter>
-
-      {/* Hidden Canvas for Image Processing */}
-      <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
     </Card>
   );
 }

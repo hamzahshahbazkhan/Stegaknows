@@ -266,7 +266,8 @@ export default function EncodeCard() {
       <CardHeader>
         <CardTitle>Encode</CardTitle>
         <CardDescription className="text-md">
-          You can hide some text or image within an image using steganography
+          Stegaknows is a steganography tool where you can hide some text or
+          image within an image.
         </CardDescription>
       </CardHeader>
 

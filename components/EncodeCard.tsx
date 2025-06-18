@@ -235,7 +235,7 @@ export default function EncodeCard() {
         if (dataIndex >= data.length) break;
 
         const bit = parseInt(binaryData[i], 10);
-        const originalValue = data[dataIndex];
+        // const originalValue = data[dataIndex];
         data[dataIndex] = (data[dataIndex] & 0xfe) | bit;
 
         dataIndex++;

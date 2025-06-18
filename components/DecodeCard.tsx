@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 export default function DecodeCard() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [decodedText, setDecodedText] = useState<string>("");
-  const [decodedByteStream, setDecodedByteStream] = useState<number[]>([]);
+  const [, setDecodedByteStream] = useState<number[]>([]);
   const [decodedImage, setDecodedImage] = useState<string | null>(null);
   const { setDownloadButton } = useContext(CanvasContext);
   const decodedImageCanvasRef = useRef<HTMLCanvasElement>(null);

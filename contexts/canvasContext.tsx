@@ -3,7 +3,7 @@
 import React, { createContext, useRef, useState, ReactNode } from "react";
 
 interface CanvasContextType {
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
   imageURL: string;
   loadImageToCanvas: (url: string) => void;
   downloadButton: boolean;

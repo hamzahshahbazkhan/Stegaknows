@@ -26,12 +26,10 @@ export default function SideTab() {
         </CardHeader>
         <CardContent className="flex-1 min-h-0 overflow-hidden flex items-center justify-center">
           {!imageURL && <div>Upload an image to see preview</div>}
-          {imageURL && (
-            <canvas
-              ref={canvasRef}
-              className="block max-w-full max-h-full w-auto h-auto object-contain"
-            />
-          )}
+          <canvas
+            ref={canvasRef}
+            className={`block max-w-full max-h-full w-auto h-auto object-contain ${imageURL ? "" : "hidden"}`}
+          />
         </CardContent>
       </Card>
 

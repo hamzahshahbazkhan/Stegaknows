@@ -19,14 +19,17 @@ export default function SideTab() {
   };
 
   return (
-    <div className="flex flex-col h-full gap-4 w-full">
-      <Card className="w-full h-full">
-        <CardHeader>
+    <div className="flex flex-col h-full min-h-0 gap-4 w-full overflow-hidden">
+      <Card className="w-full flex-1 min-h-0 flex flex-col overflow-hidden">
+        <CardHeader className="shrink-0">
           <CardTitle>Preview</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 overflow-auto">
+        <CardContent className="space-y-2 flex-1 min-h-0 overflow-auto">
           {!imageURL && <div>Upload an image to see preview</div>}
-          <canvas ref={canvasRef} className="max-w-full h-auto" />
+          <canvas
+            ref={canvasRef}
+            className="block max-w-full h-auto object-contain"
+          />
         </CardContent>
       </Card>
 

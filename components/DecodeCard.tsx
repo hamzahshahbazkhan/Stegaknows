@@ -156,15 +156,15 @@ export default function DecodeCard() {
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader>
+    <Card className="h-full flex flex-col min-h-0 overflow-hidden">
+      <CardHeader className="shrink-0">
         <CardTitle>Decode</CardTitle>
         <CardDescription className="text-md">
           Extract hidden text or image from an image
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-2 flex-1 min-h-0 overflow-auto">
         <div className="space-y-1">
           <Label htmlFor="encodedImage">Encoded Image</Label>
           <Input
@@ -187,14 +187,13 @@ export default function DecodeCard() {
         </div>
 
         {decodedImage && (
-          <div className="space-y-1">
+          <div className="space-y-1 min-h-0">
             <Label>Decoded Secret Image</Label>
-            <div className="border rounded p-2">
+            <div className="border rounded p-2 overflow-auto max-h-[40vh]">
               <img
                 src={decodedImage}
                 alt="Decoded secret image"
-                className="max-w-full h-auto"
-                style={{ imageRendering: "pixelated" }}
+                className="block max-w-full h-auto object-contain"
               />
             </div>
           </div>
@@ -203,7 +202,7 @@ export default function DecodeCard() {
         <canvas ref={decodedImageCanvasRef} style={{ display: "none" }} />
       </CardContent>
 
-      <CardFooter>
+      <CardFooter className="shrink-0">
         <Button className="w-full" onClick={decodeText} disabled={!imageUrl}>
           Decode Message
         </Button>

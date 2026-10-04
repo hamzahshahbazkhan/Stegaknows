@@ -264,8 +264,8 @@ export default function EncodeCard() {
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader>
+    <Card className="h-full flex flex-col min-h-0 overflow-hidden">
+      <CardHeader className="shrink-0">
         <CardTitle>Encode</CardTitle>
         <CardDescription className="text-md">
           Stegaknows is a steganography tool where you can hide some text or
@@ -273,7 +273,7 @@ export default function EncodeCard() {
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-2 flex-1 min-h-0 overflow-auto">
         <div className="space-y-1">
           <Label htmlFor="host">Host Image</Label>
           <Input
@@ -316,7 +316,7 @@ export default function EncodeCard() {
         )}
       </CardContent>
 
-      <CardFooter>
+      <CardFooter className="shrink-0">
         <Button
           className="w-full"
           onClick={encodeText}

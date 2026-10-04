@@ -32,6 +32,7 @@ export default function EncodeCard() {
 
     const url = URL.createObjectURL(file);
     setImageUrl(url);
+    setDownloadButton(false);
     loadImageToCanvas(url);
   };
 

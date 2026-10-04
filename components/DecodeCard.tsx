@@ -17,7 +17,6 @@ import { Textarea } from "@/components/ui/textarea";
 export default function DecodeCard() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [decodedText, setDecodedText] = useState<string>("");
-  const [, setDecodedByteStream] = useState<number[]>([]);
   const [decodedImage, setDecodedImage] = useState<string | null>(null);
   const { setDownloadButton } = useContext(CanvasContext);
   const decodedImageCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -132,7 +131,6 @@ export default function DecodeCard() {
       } else if (dataType === 1) {
         let message = "";
         let binaryString = "";
-        const byteStream = [];
 
         while (message.length < 10000 && dataIndex < data.length) {
           binaryString += (data[dataIndex] & 1).toString();
@@ -142,14 +140,12 @@ export default function DecodeCard() {
             const byte = binaryString.substring(0, 8);
             binaryString = binaryString.substring(8);
             const charCode = parseInt(byte, 2);
-            byteStream.push(charCode);
 
             if (charCode === 0) break;
             message += String.fromCharCode(charCode);
           }
         }
 
-        setDecodedByteStream(byteStream);
         setDecodedText(message || "No text message found");
         setDecodedImage(null);
       } else {

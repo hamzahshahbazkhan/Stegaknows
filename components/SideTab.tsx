@@ -24,12 +24,14 @@ export default function SideTab() {
         <CardHeader className="shrink-0">
           <CardTitle>Preview</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 flex-1 min-h-0 overflow-auto">
+        <CardContent className="flex-1 min-h-0 overflow-hidden flex items-center justify-center">
           {!imageURL && <div>Upload an image to see preview</div>}
-          <canvas
-            ref={canvasRef}
-            className="block max-w-full h-auto object-contain"
-          />
+          {imageURL && (
+            <canvas
+              ref={canvasRef}
+              className="block max-w-full max-h-full w-auto h-auto object-contain"
+            />
+          )}
         </CardContent>
       </Card>
 

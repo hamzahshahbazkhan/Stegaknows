@@ -26,6 +26,7 @@ export default function DecodeCard() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    if (imageUrl?.startsWith("blob:")) URL.revokeObjectURL(imageUrl);
     const url = URL.createObjectURL(file);
     setImageUrl(url);
     setDownloadButton(false);

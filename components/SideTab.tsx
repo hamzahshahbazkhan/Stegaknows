@@ -24,9 +24,9 @@ export default function SideTab() {
         <CardHeader>
           <CardTitle>Preview</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-2 overflow-auto">
           {!imageURL && <div>Upload an image to see preview</div>}
-          <canvas ref={canvasRef} />
+          <canvas ref={canvasRef} className="max-w-full h-auto" />
         </CardContent>
       </Card>
 

@@ -9,10 +9,10 @@ const MainTab = () => {
         <TabsTrigger value="encode">Encode</TabsTrigger>
         <TabsTrigger value="decode">Decode</TabsTrigger>
       </TabsList>
-      <TabsContent value="encode" className="h-full flex-grow overflow-hidden">
+      <TabsContent value="encode" className="h-full flex-grow overflow-auto">
         <EncodeCard />
       </TabsContent>
-      <TabsContent value="decode" className="h-full flex-grow overflow-hidden">
+      <TabsContent value="decode" className="h-full flex-grow overflow-auto">
         <DecodeCard />
       </TabsContent>
     </Tabs>
